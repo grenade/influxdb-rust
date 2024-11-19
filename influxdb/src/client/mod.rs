@@ -81,10 +81,15 @@ impl Client {
     pub fn new<S1, S2>(url: S1, database: S2) -> Self
     where
         S1: Into<String>,
-        S2: Into<String>,
+        S2: Into<String> + std::marker::Copy,
     {
         let mut parameters = HashMap::<&str, String>::new();
-        parameters.insert("db", database.into());
+        if let Some((org, bucket)) = database.into().split_once('/') {
+            parameters.insert("org", org.into());
+            parameters.insert("bucket", bucket.into());
+        } else {
+            parameters.insert("db", database.into());
+        }
         Client {
             url: Arc::new(url.into()),
             parameters: Arc::new(parameters),
